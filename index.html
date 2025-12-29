@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>M1 and Berowra Waters Cams</title>
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --card:#111827;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --border:#243244;
+      --accent:#60a5fa;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    header{
+      padding:16px;
+      border-bottom:1px solid var(--border);
+      position:sticky;
+      top:0;
+      background:rgba(11,15,23,0.92);
+      backdrop-filter: blur(6px);
+      z-index:10;
+    }
+    h1{ margin:0 0 8px 0; font-size:20px; }
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      font-size:13px;
+      color:var(--muted);
+    }
+    .pill{
+      padding:6px 12px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      background:rgba(17,24,39,0.8);
+    }
+    button{
+      cursor:pointer;
+      padding:6px 12px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      background:var(--card);
+      color:var(--text);
+    }
+    button:hover{ border-color:var(--accent); }
+    main{
+      padding:16px;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap:15px;
+    }
+    .card{
+      border:1px solid var(--border);
+      border-radius:12px;
+      overflow:hidden;
+      background:var(--card);
+      display:flex;
+      flex-direction:column;
+      min-height: 220px;
+    }
+    .card-header{
+      padding:12px;
+      border-bottom:1px solid var(--border);
+      font-weight:700;
+      font-size:14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .card-header a{
+      font-weight:600;
+      font-size:12px;
+      color:var(--accent);
+      text-decoration:none;
+      white-space:nowrap;
+    }
+    .img-wrap{
+      position:relative;
+      background:#000;
+      flex:1;
+    }
+    img{
+      width:100%;
+      height:auto;
+      display:block;
+    }
+    .status{
+      position:absolute;
+      bottom:8px;
+      left:8px;
+      background:rgba(0,0,0,0.65);
+      padding:4px 8px;
+      border-radius:6px;
+      font-size:11px;
+      color:#fff;
+    }
+    .status.right{
+      left:auto;
+      right:8px;
+      opacity:0.95;
+    }
+    .error{
+      padding:14px;
+      color:#fff;
+      font-size:13px;
+      line-height:1.4;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>M1 and Berowra Waters Cams</h1>
+    <div class="meta">
+      <div class="pill">Refresh: <strong>25s</strong></div>
+      <button id="refreshNow" type="button">Refresh now</button>
+      <div class="pill" id="lastRefresh">Last refresh: never</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid" id="camGrid"></div>
+  </main>
+
+  <script>
+    const refreshMs = 25000;
+
+    const cams = [
+      { name: "HK River", url: "https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m1_pacific_motorway_hawkesbury_river.jpeg" },
+      { name: "Windy Banks", url: "https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m1_pacific_motorway_windy_banks.jpeg" },
+      { name: "Mt Colah", url: "https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m1_pacific_mwy_mt_colah_north.jpeg" },
+      { name: "Wahroonga", url: "https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m1_pacific_motorway_wahroonga.jpeg" },
+      { name: "Berowra Waters East", url: "https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/berowra_waters_ferry.jpeg" },
+      { name: "Berowra Waters East Queue", url: "https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/berowra_waters_ferry_queue.jpeg" }
+    ];
+
+    const grid = document.getElementById("camGrid");
+    const lastRefreshEl = document.getElementById("lastRefresh");
+
+    function fmtTime(d){
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    }
+
+    function cacheBusted(url){
+      const sep = url.includes("?") ? "&" : "?";
+      return url + sep + "t=" + Date.now();
+    }
+
+    function makeCard(cam){
+      const card = document.createElement("section");
+      card.className = "card";
+
+      const header = document.createElement("div");
+      header.className = "card-header";
+
+      const title = document.createElement("div");
+      title.textContent = cam.name;
+
+      const link = document.createElement("a");
+      link.href = cam.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "Open image";
+
+      header.appendChild(title);
+      header.appendChild(link);
+
+      const wrap = document.createElement("div");
+      wrap.className = "img-wrap";
+
+      const img = document.createElement("img");
+      img.alt = cam.name;
+      img.dataset.baseurl = cam.url;
+
+      const status = document.createElement("div");
+      status.className = "status";
+      status.textContent = "Loading…";
+
+      const status2 = document.createElement("div");
+      status2.className = "status right";
+      status2.textContent = "";
+
+      img.addEventListener("load", () => {
+        status.textContent = "Updated " + fmtTime(new Date());
+        status2.textContent = "OK";
+      });
+
+      img.addEventListener("error", () => {
+        status.textContent = "Failed to load";
+        status2.textContent = "Error";
+        // Replace image element with a lightweight error message to avoid broken icon noise.
+        wrap.innerHTML = '<div class="error">Image did not load. This can happen if the source is temporarily unavailable.</div>';
+        wrap.appendChild(status);
+        wrap.appendChild(status2);
+      });
+
+      wrap.appendChild(img);
+      wrap.appendChild(status);
+      wrap.appendChild(status2);
+
+      card.appendChild(header);
+      card.appendChild(wrap);
+
+      // initial load
+      img.src = cacheBusted(cam.url);
+
+      return card;
+    }
+
+    function render(){
+      grid.innerHTML = "";
+      cams.forEach(cam => grid.appendChild(makeCard(cam)));
+      updateLastRefresh();
+    }
+
+    function refreshAll(){
+      document.querySelectorAll("img[data-baseurl]").forEach(img => {
+        const base = img.dataset.baseurl;
+        img.src = cacheBusted(base);
+      });
+      updateLastRefresh();
+    }
+
+    function updateLastRefresh(){
+      const now = new Date();
+      lastRefreshEl.textContent = "Last refresh: " + fmtTime(now);
+    }
+
+    document.getElementById("refreshNow").addEventListener("click", refreshAll);
+
+    render();
+    setInterval(refreshAll, refreshMs);
+  </script>
+</body>
+</html>
