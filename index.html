@@ -7,21 +7,26 @@
   <style>
     :root{
       --bg:#0b0f17;
-      --card:#111827;
+      --panel:#111827;
       --text:#e5e7eb;
       --muted:#9ca3af;
       --border:#243244;
       --accent:#60a5fa;
+      --shadow: 0 10px 30px rgba(0,0,0,0.25);
+      --radius: 14px;
     }
+
     *{ box-sizing:border-box; }
+
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       background:var(--bg);
       color:var(--text);
     }
+
     header{
-      padding:16px;
+      padding:14px 16px;
       border-bottom:1px solid var(--border);
       position:sticky;
       top:0;
@@ -29,7 +34,13 @@
       backdrop-filter: blur(6px);
       z-index:10;
     }
-    h1{ margin:0 0 8px 0; font-size:20px; }
+
+    h1{
+      margin:0 0 10px 0;
+      font-size:18px;
+      letter-spacing:0.2px;
+    }
+
     .meta{
       display:flex;
       flex-wrap:wrap;
@@ -38,50 +49,100 @@
       font-size:13px;
       color:var(--muted);
     }
+
     .pill{
-      padding:6px 12px;
+      padding:7px 12px;
       border:1px solid var(--border);
       border-radius:999px;
-      background:rgba(17,24,39,0.8);
+      background:rgba(17,24,39,0.75);
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      white-space:nowrap;
     }
-    button{
+
+    .pill strong{ color:var(--text); }
+
+    button, select{
+      font: inherit;
       cursor:pointer;
-      padding:6px 12px;
-      border-radius:8px;
+      padding:7px 12px;
+      border-radius:10px;
       border:1px solid var(--border);
-      background:var(--card);
+      background:var(--panel);
       color:var(--text);
+      outline:none;
     }
-    button:hover{ border-color:var(--accent); }
+
+    button:hover, select:hover{ border-color:var(--accent); }
+
+    button:active{ transform: translateY(1px); }
+
+    .toggle{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 12px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      background:rgba(17,24,39,0.75);
+      user-select:none;
+    }
+
+    .toggle input{ accent-color: var(--accent); }
+
     main{
-      padding:16px;
-      max-width:1200px;
+      padding: clamp(12px, 2vw, 22px);
+      max-width: 2200px;
       margin:0 auto;
     }
+
+    /* Layout presets */
+    body[data-layout="large"] .grid{ grid-template-columns: 1fr; }
+    body[data-layout="standard"] .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    body[data-layout="dense"] .grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    /* Responsive fallbacks */
+    @media (max-width: 980px){
+      body[data-layout="standard"] .grid{ grid-template-columns: 1fr; }
+      body[data-layout="dense"] .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px){
+      body[data-layout="dense"] .grid{ grid-template-columns: 1fr; }
+    }
+
     .grid{
       display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap:15px;
+      gap: clamp(12px, 2vw, 18px);
+      align-items:start;
     }
+
     .card{
       border:1px solid var(--border);
-      border-radius:12px;
+      border-radius:var(--radius);
       overflow:hidden;
-      background:var(--card);
+      background:var(--panel);
+      box-shadow: var(--shadow);
       display:flex;
       flex-direction:column;
-      min-height: 220px;
+      min-height: 200px;
     }
+
     .card-header{
-      padding:12px;
+      padding:12px 12px 10px 12px;
       border-bottom:1px solid var(--border);
-      font-weight:700;
-      font-size:14px;
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
     }
+
+    .card-title{
+      font-weight:700;
+      font-size:14px;
+      line-height:1.2;
+    }
+
     .card-header a{
       font-weight:600;
       font-size:12px;
@@ -89,51 +150,103 @@
       text-decoration:none;
       white-space:nowrap;
     }
+
     .img-wrap{
       position:relative;
       background:#000;
-      flex:1;
+      overflow:hidden;
     }
+
+    /* Image size tuning by layout */
+    body[data-layout="large"] .img-wrap{ height: min(72vh, 980px); }
+    body[data-layout="standard"] .img-wrap{ height: min(48vh, 560px); }
+    body[data-layout="dense"] .img-wrap{ height: min(36vh, 460px); }
+
+    /* On small screens, let image define height naturally */
+    @media (max-width: 640px){
+      .img-wrap{ height: auto !important; }
+    }
+
     img{
       width:100%;
-      height:auto;
+      height:100%;
+      object-fit: contain;
       display:block;
     }
+
+    @media (max-width: 640px){
+      img{
+        height:auto;
+        object-fit: unset;
+      }
+    }
+
     .status{
       position:absolute;
       bottom:8px;
       left:8px;
       background:rgba(0,0,0,0.65);
       padding:4px 8px;
-      border-radius:6px;
+      border-radius:8px;
       font-size:11px;
       color:#fff;
     }
+
     .status.right{
       left:auto;
       right:8px;
       opacity:0.95;
     }
+
     .error{
       padding:14px;
       color:#fff;
       font-size:13px;
       line-height:1.4;
     }
+
+    .sr-only{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;
+      border:0;
+    }
   </style>
 </head>
-<body>
+<body data-layout="dense">
   <header>
     <h1>M1 and Berowra Waters Cams</h1>
     <div class="meta">
-      <div class="pill">Refresh: <strong>25s</strong></div>
-      <button id="refreshNow" type="button">Refresh now</button>
+      <div class="pill">Refresh: <strong id="refreshEvery">25s</strong></div>
       <div class="pill" id="lastRefresh">Last refresh: never</div>
+      <div class="pill" id="nextRefresh">Next refresh: --</div>
+
+      <button id="refreshNow" type="button">Refresh now</button>
+
+      <label class="toggle" for="autoRefresh">
+        <input id="autoRefresh" type="checkbox" checked />
+        <span>Auto refresh</span>
+      </label>
+
+      <label class="pill" for="layoutSelect">
+        <span>Layout</span>
+        <span class="sr-only">Layout selector</span>
+        <select id="layoutSelect">
+          <option value="large">Large</option>
+          <option value="standard">Standard</option>
+          <option value="dense" selected>Dense</option>
+        </select>
+      </label>
     </div>
   </header>
 
   <main>
-    <div class="grid" id="camGrid"></div>
+    <div class="grid" id="camGrid" aria-live="polite"></div>
   </main>
 
   <script>
@@ -150,6 +263,12 @@
 
     const grid = document.getElementById("camGrid");
     const lastRefreshEl = document.getElementById("lastRefresh");
+    const nextRefreshEl = document.getElementById("nextRefresh");
+    const refreshEveryEl = document.getElementById("refreshEvery");
+    const autoRefreshEl = document.getElementById("autoRefresh");
+    const layoutSelectEl = document.getElementById("layoutSelect");
+
+    refreshEveryEl.textContent = Math.round(refreshMs / 1000) + "s";
 
     function fmtTime(d){
       return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
@@ -168,6 +287,7 @@
       header.className = "card-header";
 
       const title = document.createElement("div");
+      title.className = "card-title";
       title.textContent = cam.name;
 
       const link = document.createElement("a");
@@ -184,6 +304,8 @@
 
       const img = document.createElement("img");
       img.alt = cam.name;
+      img.loading = "lazy";
+      img.decoding = "async";
       img.dataset.baseurl = cam.url;
 
       const status = document.createElement("div");
@@ -202,8 +324,7 @@
       img.addEventListener("error", () => {
         status.textContent = "Failed to load";
         status2.textContent = "Error";
-        // Replace image element with a lightweight error message to avoid broken icon noise.
-        wrap.innerHTML = '<div class="error">Image did not load. This can happen if the source is temporarily unavailable.</div>';
+        wrap.innerHTML = '<div class="error">Image did not load. The source may be unavailable or blocked by your network.</div>';
         wrap.appendChild(status);
         wrap.appendChild(status2);
       });
@@ -215,9 +336,7 @@
       card.appendChild(header);
       card.appendChild(wrap);
 
-      // initial load
       img.src = cacheBusted(cam.url);
-
       return card;
     }
 
@@ -228,9 +347,8 @@
     }
 
     function refreshAll(){
-      document.querySelectorAll("img[data-baseurl]").forEach(img => {
-        const base = img.dataset.baseurl;
-        img.src = cacheBusted(base);
+      document.querySelectorAll('img[data-baseurl]').forEach(img => {
+        img.src = cacheBusted(img.dataset.baseurl);
       });
       updateLastRefresh();
     }
@@ -238,12 +356,94 @@
     function updateLastRefresh(){
       const now = new Date();
       lastRefreshEl.textContent = "Last refresh: " + fmtTime(now);
+      scheduleNextRefresh(now);
     }
 
-    document.getElementById("refreshNow").addEventListener("click", refreshAll);
+    let timer = null;
+    let nextAt = null;
+    let tickTimer = null;
 
+    function scheduleNextRefresh(fromDate = new Date()){
+      nextAt = new Date(fromDate.getTime() + refreshMs);
+      nextRefreshEl.textContent = "Next refresh: " + fmtTime(nextAt);
+    }
+
+    function clearTimers(){
+      if (timer) clearInterval(timer);
+      if (tickTimer) clearInterval(tickTimer);
+      timer = null;
+      tickTimer = null;
+    }
+
+    function startTimers(){
+      clearTimers();
+      scheduleNextRefresh(new Date());
+      timer = setInterval(() => {
+        if (!document.hidden){
+          refreshAll();
+        } else {
+          scheduleNextRefresh(new Date());
+        }
+      }, refreshMs);
+
+      tickTimer = setInterval(() => {
+        if (!nextAt){
+          nextRefreshEl.textContent = "Next refresh: --";
+          return;
+        }
+        const remaining = Math.max(0, nextAt.getTime() - Date.now());
+        const s = Math.ceil(remaining / 1000);
+        nextRefreshEl.textContent = "Next refresh: " + fmtTime(nextAt) + " (" + s + "s)";
+      }, 1000);
+    }
+
+    function setLayout(layout){
+      document.body.setAttribute("data-layout", layout);
+      layoutSelectEl.value = layout;
+      try{ localStorage.setItem("cams_layout", layout); } catch(e){}
+    }
+
+    function loadLayout(){
+      try{
+        const saved = localStorage.getItem("cams_layout");
+        if (saved === "large" || saved === "standard" || saved === "dense") return saved;
+      } catch(e){}
+      return "dense";
+    }
+
+    function setAutoRefresh(enabled){
+      autoRefreshEl.checked = enabled;
+      try{ localStorage.setItem("cams_autorefresh", enabled ? "1" : "0"); } catch(e){}
+      if (enabled) startTimers();
+      else clearTimers();
+      nextRefreshEl.textContent = enabled ? nextRefreshEl.textContent : "Next refresh: paused";
+    }
+
+    function loadAutoRefresh(){
+      try{
+        return localStorage.getItem("cams_autorefresh") !== "0";
+      } catch(e){
+        return true;
+      }
+    }
+
+    document.getElementById("refreshNow").addEventListener("click", () => {
+      refreshAll();
+      if (autoRefreshEl.checked) scheduleNextRefresh(new Date());
+    });
+
+    autoRefreshEl.addEventListener("change", () => setAutoRefresh(autoRefreshEl.checked));
+    layoutSelectEl.addEventListener("change", () => setLayout(layoutSelectEl.value));
+
+    document.addEventListener("visibilitychange", () => {
+      if (autoRefreshEl.checked && !document.hidden){
+        scheduleNextRefresh(new Date());
+      }
+    });
+
+    setLayout(loadLayout());
     render();
-    setInterval(refreshAll, refreshMs);
+    setAutoRefresh(loadAutoRefresh());
   </script>
 </body>
 </html>
